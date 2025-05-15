@@ -77,12 +77,10 @@ class Polygon:
     
     def contains_polygon(self, other_polygon):
         """Перевіряє, чи містить даний багатокутник інший багатокутник повністю"""
-        # Багатокутник містить інший, якщо всі його точки знаходяться всередині
         return all(self.is_point_inside(point) for point in other_polygon.points)
     
     def intersects_with(self, other_polygon):
         """Перевіряє, чи перетинається даний багатокутник з іншим"""
-        # Перевіряємо, чи перетинаються сторони багатокутників
         for i in range(len(self.points)):
             p1 = self.points[i]
             p2 = self.points[(i + 1) % len(self.points)]
@@ -94,9 +92,6 @@ class Polygon:
                 if self._do_line_segments_intersect(p1, p2, p3, p4):
                     return True
         
-        # Перевіряємо, чи один багатокутник повністю містить інший
-        # Якщо один багатокутник містить інший, але їх сторони не перетинаються,
-        # це не вважається перетином для нашої задачі (вкладені багатокутники)
         return False
     
     def _do_line_segments_intersect(self, p1, p2, p3, p4):
@@ -301,10 +296,9 @@ class GrahamScanProcessor(PolygonProcessor):
             j = i + 1
             while j < len(self.polygons):
                 if self.polygons[i].intersects_with(self.polygons[j]):
-                    # Видаляємо менший багатокутник
                     if self.polygons[i].area < self.polygons[j].area:
                         self.polygons.pop(i)
-                        j = i + 1  # Почати знову з наступного багатокутника
+                        j = i + 1  
                     else:
                         self.polygons.pop(j)
                 else:
@@ -324,7 +318,6 @@ class JarvisMarchProcessor(PolygonProcessor):
         if not self.all_points:
             return 0
         
-        # Копія всіх точок для роботи
         points = self.all_points.copy()
         self.polygons = []
         
@@ -390,8 +383,7 @@ class JarvisMarchProcessor(PolygonProcessor):
                 # Обчислюємо орієнтацію трьох точок
                 orientation = self._orientation(current_point, next_point, point)
                 
-                # Якщо точка знаходиться справа від поточного шляху або на одній прямій,
-                # але далі, то вона стає наступною точкою
+                # Якщо точка знаходиться справа від поточного шляху або на одній прямій, але далі, то вона стає наступною точкою
                 if (next_point == current_point or 
                     orientation > 0 or 
                     (orientation == 0 and 
@@ -413,8 +405,8 @@ class JarvisMarchProcessor(PolygonProcessor):
         від'ємне - якщо справа, 0 - якщо на одній прямій"""
         val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y)
         if val == 0:
-            return 0  # колінеарні
-        return 1 if val > 0 else -1  # за годинниковою стрілкою або проти
+            return 0  
+        return 1 if val > 0 else -1  
     
     def _find_point_index(self, points_list, target_point):
         """Знаходить індекс точки у списку"""
@@ -430,10 +422,9 @@ class JarvisMarchProcessor(PolygonProcessor):
             j = i + 1
             while j < len(self.polygons):
                 if self.polygons[i].intersects_with(self.polygons[j]):
-                    # Видаляємо менший багатокутник
                     if self.polygons[i].area < self.polygons[j].area:
                         self.polygons.pop(i)
-                        j = i + 1  # Почати знову з наступного багатокутника
+                        j = i + 1  
                     else:
                         self.polygons.pop(j)
                 else:
@@ -485,15 +476,13 @@ class PolygonVisualization:
         cmap = plt.cm.get_cmap('tab10', len(polygons))
         colors = [cmap(i) for i in range(len(polygons))]
         
-        # Сортуємо багатокутники за площею (від більшого до меншого)
         polygons_sorted = sorted(polygons, key=lambda p: p.area, reverse=True)
         
-        # Спочатку відображаємо всі багатокутники
+        # Спочатку відображаємо багатокутники
         for i, polygon in enumerate(polygons_sorted):
             x_coords = polygon.get_x_coords()
             y_coords = polygon.get_y_coords()
-            
-            # Додаємо першу точку в кінець для замкнення багатокутника
+
             x_coords.append(x_coords[0])
             y_coords.append(y_coords[0])
             
@@ -501,7 +490,6 @@ class PolygonVisualization:
             color = colors[i % len(colors)]
             alpha = 0.3  # Прозорість заповнення
             
-            # Відображаємо багатокутник
             self.plot.fill(x_coords, y_coords, alpha=alpha, color=color)
             self.plot.plot(x_coords, y_coords, '-o', color=color, lw=1.5, label=f'Багатокутник {i+1}')
             
@@ -517,7 +505,6 @@ class PolygonVisualization:
         
         # Додаємо відображення часу виконання алгоритму
         if elapsed_time is not None:
-            # Розміщуємо текст з часом у верхньому лівому куті графіка
             self.plot.text(0.02, 0.98, f'Час роботи алгоритму: {elapsed_time:.6f} с', 
                          transform=self.plot.transAxes, fontsize=10, 
                          verticalalignment='top', bbox=dict(boxstyle='round,pad=0.5', 
@@ -528,7 +515,6 @@ class PolygonVisualization:
         self.plot.set_aspect('equal')
         self.plot.legend(loc='upper right')
         
-        # Встановлюємо оптимальні межі для відображення
         self.plot.autoscale()
         
         self.canvas.draw()
@@ -657,7 +643,7 @@ class PolygonApp:
         # Очищаємо попередні точки
         self.current_processor.all_points = []
         
-        # Генеруємо точки у вкладених багатокутниках
+        # Генеруємо точки
         self._generate_nested_polygon_points(num_points)
         
         # Відображаємо згенеровані точки
@@ -668,10 +654,8 @@ class PolygonApp:
     
     def _generate_nested_polygon_points(self, total_points):
         """Генерує точки для вкладених багатокутників"""
-        # Визначаємо кількість багатокутників (від 2 до 4)
         num_polygons = random.randint(2, min(4, total_points // 3))
         
-        # Розподіляємо точки між багатокутниками
         points_per_polygon = self._distribute_points(total_points, num_polygons)
         
         # Розмір області для генерації
@@ -681,27 +665,21 @@ class PolygonApp:
         # Генеруємо точки для кожного багатокутника
         point_id = 1
         for i, num_points in enumerate(points_per_polygon):
-            # Масштабний фактор для вкладеності (зовнішній найбільший)
             scale = max_size * (num_polygons - i) / num_polygons
             
-            # Якщо це не перший багатокутник, трохи зміщуємо центр
             if i > 0:
                 center_offset = scale * 0.1
                 center_x += random.uniform(-center_offset, center_offset)
                 center_y += random.uniform(-center_offset, center_offset)
-            
-            # Генеруємо випадкові точки навколо центру
+
             for _ in range(num_points):
-                # Полярні координати для рівномірного розподілу
                 angle = random.uniform(0, 2 * np.pi)
-                
-                # Додаємо випадковість, щоб уникнути ідеально правильних багатокутників
+ 
                 radius = scale * (0.8 + random.uniform(0, 0.2))
                 
                 x = center_x + radius * np.cos(angle)
                 y = center_y + radius * np.sin(angle)
-                
-                # Невелике випадкове зміщення
+
                 x += random.uniform(-scale*0.05, scale*0.05)
                 y += random.uniform(-scale*0.05, scale*0.05)
                 
@@ -712,19 +690,16 @@ class PolygonApp:
         """Розподіляє точки між групами"""
         # Мінімальна кількість точок на групу
         min_points = 3
-        
-        # Розподіляємо точки пропорційно розміру групи
+
         points_left = total - min_points * num_groups
         base_points = [min_points] * num_groups
         
         for i in range(num_groups):
-            # Більші багатокутники отримують більше точок
             weight = (num_groups - i) / sum(range(1, num_groups + 1))
             extra = int(points_left * weight)
             base_points[i] += extra
             points_left -= extra
-        
-        # Розподіляємо залишок
+
         i = 0
         while points_left > 0:
             base_points[i % num_groups] += 1
